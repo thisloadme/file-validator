@@ -10,70 +10,63 @@ class FileValidator
     /**
      * Validate file eligibility to being uploaded
      * 
-     * @param object|null $fileObj file object uploaded
-     * @param array $fileType type file uploaded, valin input ['image', 'document, 'video', 'audio', 'spreadsheet', 'word', 'powerpoint', 'text', 'zip']
+     * @param object $fileObj file object uploaded
+     * @param array $fileType type file uploaded, valid input ['image', 'document, 'video', 'audio', 'spreadsheet', 'word', 'powerpoint', 'text', 'zip']
      * @param boolean $stopExecutable stop executable file
      * @return array
      */
-    public static function validateFileEligibilityToUpload($fileObj = null, $fileType = [], $stopExecutable = true)
+    public static function validateFileEligibilityToUpload($fileObj, $fileType = ['image'], $stopExecutable = true)
     {
         try {
-            if (!empty($fileObj)) {
-                $isUploadFile = FileSettings::isDoUploadFile($fileObj);
-                if ($isUploadFile) {
-                    $ogFileName = $fileObj->getClientOriginalName();
-                    $ogExtension = $fileObj->getClientOriginalExtension();
-                    $fileMime = $fileObj->getMimeType();
-    
-                    if ($stopExecutable && FileSettings::isExtensionNotAllowed($ogExtension)) {
-                        return [
-                            'code' => 400,
-                            'message' => "File '$ogFileName' is not allowed!",
-                        ];
-                    }
-    
-                    if (strpos($fileMime, 'json') !== false && $ogExtension != 'json') {
-                        return [
-                            'code' => 400,
-                            'message' => "File '$ogFileName' already broken, please change it to other file!",
-                        ];
-                    }
-    
-                    $validateFileObj = self::validateFileTypeRules($fileType, $fileObj);
-                    if ($validateFileObj['code'] != 200) {
-                        return [
-                            'code' => 400,
-                            'message' => $validateFileObj['message'],
-                        ];
-                    }
-    
-                    $extractEkstensiFromMime = Utility::cleanExplode($fileMime, '/')[1] ?? null;
-                    if (strlen($extractEkstensiFromMime) > 5) {
-                        $extractEkstensiFromMime = null;
-                    }
-    
-                    $fileExtension = ($extractEkstensiFromMime ?? $ogExtension);
-                    if ($fileExtension == 'zip') {
-                        $validasiZip = self::validateZipFileContentSecured($fileObj);
-                        if ($validasiZip['code'] != 200) {
-                            return [
-                                'code' => 400,
-                                'message' => $validasiZip['message'],
-                            ];
-                        }
-                    }
-    
+            $isUploadFile = FileSettings::isDoUploadFile($fileObj);
+            if ($isUploadFile) {
+                $ogFileName = $fileObj->getClientOriginalName();
+                $ogExtension = $fileObj->getClientOriginalExtension();
+                $fileMime = $fileObj->getMimeType();
+
+                if ($stopExecutable && FileSettings::isExtensionNotAllowed($ogExtension)) {
                     return [
-                        'code' => 200,
-                        'message' => "File eligible to upload!",
+                        'code' => 400,
+                        'message' => "File '$ogFileName' is not allowed!",
                     ];
                 }
+
+                if (strpos($fileMime, 'json') !== false && $ogExtension != 'json') {
+                    return [
+                        'code' => 400,
+                        'message' => "File '$ogFileName' already broken, please change it to other file!",
+                    ];
+                }
+
+                $validateFileObj = self::validateFileTypeRules($fileType, $fileObj);
+                if ($validateFileObj['code'] != 200) {
+                    return [
+                        'code' => 400,
+                        'message' => $validateFileObj['message'],
+                    ];
+                }
+
+                $extractEkstensiFromMime = Utility::cleanExplode($fileMime, '/')[1] ?? null;
+                if (strlen($extractEkstensiFromMime) > 5) {
+                    $extractEkstensiFromMime = null;
+                }
+
+                $fileExtension = ($extractEkstensiFromMime ?? $ogExtension);
+                if ($fileExtension == 'zip') {
+                    $validasiZip = self::validateZipFileContentSecured($fileObj);
+                    if ($validasiZip['code'] != 200) {
+                        return [
+                            'code' => 400,
+                            'message' => $validasiZip['message'],
+                        ];
+                    }
+                }
+
+                return [
+                    'code' => 200,
+                    'message' => "File eligible to upload!",
+                ];
             }
-    
-            return [
-                'code' => 400,
-                'message' => "File not eligible to upload!",
-            ];
         } catch (\Exception $exception) {
             return [
                 'code' => 500,
