@@ -1,0 +1,19 @@
+{
+    "name": "riyantobudi/support",
+    "description": "Package to support your web development",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Riyantobudi\\Support\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "thisloadme",
+            "email": "dionbudi7@gmail.com"
+        }
+    ],
+    "require": {
+        "illuminate/http": "^11.7"
+    }
+}
